@@ -106,6 +106,7 @@ model Project {
   links      Link[]
   domains    Domain[]
   tags       Tag[]
+  oauthApps  OAuthApp[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -319,4 +320,22 @@ model jackson_ttl {
   expiresAt BigInt
 
   @@index([expiresAt], map: "_jackson_ttl_expires_at")
+}
+
+model OAuthApp {
+  id                String  @id @default(cuid())
+  name              String
+  website           String
+  clientId          String   @unique
+  clientSecret      String
+  clientSecretAlias String
+  redirectUris      String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  projectId         String
+  project           Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([clientId])
 }
