@@ -18,15 +18,16 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  createdAt     DateTime  @default(now())
+  subscribed    Boolean   @default(true)
 
-  accounts    Account[]
-  sessions    Session[]
-  projects    ProjectUsers[]
-  links       Link[]
-  tokens      Token[]
-  createdAt   DateTime       @default(now())
-  subscribed  Boolean        @default(true)
-  oauthTokens OAuthToken[]
+  accounts          Account[]
+  sessions          Session[]
+  projects          ProjectUsers[]
+  links             Link[]
+  tokens            Token[]
+  oauthAccessTokens OAuthAccessToken[]
+  oauthCodes        OAuthCode[]
 }
 
 model Account {
@@ -340,27 +341,47 @@ model OAuthApp {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  oauthTokens OAuthToken[]
+  oauthTokens OAuthAccessToken[]
+  oauthCodes  OAuthCode[]
 
   @@index([projectId])
   @@index([clientId])
 }
 
-// Access tokens for OAuth apps user grants access to
-model OAuthToken {
-  id           String   @id @default(cuid())
-  appId        String
-  userId       String
-  accessToken  String   @unique
-  refreshToken String   @unique
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
+model OAuthCode {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String
+  code      String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app  OAuthApp @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // TODO:
+  // Add scopes to the code
+
+  @@index([clientId, code])
+  @@index([userId])
+}
+
+model OAuthAccessToken {
+  id          String   @id @default(cuid())
+  appId       String
+  userId      String
+  accessToken String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
 
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   app  OAuthApp @relation(fields: [appId], references: [id], onDelete: Cascade)
 
+  refreshToken OAuthRefreshToken[]
+
   // TODO:
   // Can we have multiple access tokens for the same app and user?
+  // Keep scopes of the token
 
   @@unique([appId, userId])
   @@index([appId])
@@ -368,14 +389,14 @@ model OAuthToken {
   @@index([accessToken])
 }
 
-// Project access the created access tokens have access to
-// model OAuthAppProjectAccess {
-//   id        String   @id @default(cuid())
+model OAuthRefreshToken {
+  id            String   @id @default(cuid())
+  accessTokenId String
+  refreshToken  String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
 
-//   projectId String
+  accessToken OAuthAccessToken @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
 
-//   app       OAuthApp @relation(fields: [appId], references: [id], onDelete: Cascade)
-//   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-//    @@unique([appId, projectId])
-// }
+  @@index([accessTokenId])
+}
