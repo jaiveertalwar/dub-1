@@ -369,13 +369,13 @@ model OAuthToken {
 }
 
 // Project access the created access tokens have access to
-model OAuthAppProjectAccess {
-  id        String   @id @default(cuid())
+// model OAuthAppProjectAccess {
+//   id        String   @id @default(cuid())
 
-  projectId String
+//   projectId String
 
-  app       OAuthApp @relation(fields: [appId], references: [id], onDelete: Cascade)
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+//   app       OAuthApp @relation(fields: [appId], references: [id], onDelete: Cascade)
+//   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-   @@unique([appId, projectId])
-}
+//    @@unique([appId, projectId])
+// }
