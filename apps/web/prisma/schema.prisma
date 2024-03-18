@@ -387,7 +387,6 @@ model OAuthAccessToken {
   // TODO:
   // Keep scopes of the token
 
-  @@unique([clientId, userId])
   @@index([clientId])
   @@index([userId])
   @@index([accessToken])

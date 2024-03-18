@@ -4,17 +4,19 @@ import { getSession, hashToken } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   authorizedRequestSchema,
-  tokenExchangeSchema,
+  codeExchangeSchema,
+  tokenRefreshSchema,
 } from "@/lib/zod/schemas/oauth";
 import { nanoid } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { DubApiError } from "../api/errors";
+import z from "../zod";
 import { createTokens, tokensExpiry } from "./credential";
 
 const codeExpiresIn = 1000 * 60 * 10; // 5 minutes
 
-// Handle the OAuth authorization request 
+// Handle the OAuth authorization request
 export const authorizeRequest = async (prevState: any, formData: FormData) => {
   const session = await getSession();
 
@@ -86,15 +88,12 @@ export const requestDeclined = async (req: Request, res: Response) => {
 };
 
 // Exchange an authorization code for an access token
-export const exchangeCodeForToken = async (formData: FormData) => {
-  const rawFormData = Object.fromEntries(formData);
-  const {
-    code,
-    client_id: clientId,
-    client_secret: clientSecret,
-    redirect_uri: redirectUri,
-  } = tokenExchangeSchema.parse(rawFormData);
-
+export const exchangeCodeForToken = async ({
+  code,
+  client_id: clientId,
+  client_secret: clientSecret,
+  redirect_uri: redirectUri,
+}: z.infer<typeof codeExchangeSchema>) => {
   const codeRecord = await prisma.oAuthCode.findUnique({
     where: {
       code,
@@ -171,6 +170,88 @@ export const exchangeCodeForToken = async (formData: FormData) => {
     token_type: "Bearer",
     access_token: accessToken,
     refresh_token: refreshToken,
+    expires_in: tokensExpiry.accessToken,
+  };
+};
+
+// Refresh an access token
+export const refreshAccessToken = async ({
+  refresh_token: refreshToken,
+  client_id: clientId,
+  client_secret: clientSecret,
+}: z.infer<typeof tokenRefreshSchema>) => {
+  const refreshTokenRecord = await prisma.oAuthRefreshToken.findUnique({
+    where: {
+      refreshToken,
+    },
+    include: {
+      accessToken: true,
+    },
+  });
+
+  if (!refreshTokenRecord) {
+    throw new Error("Invalid refresh token");
+  }
+
+  if (refreshTokenRecord.expiresAt < new Date()) {
+    throw new Error("Refresh token expired");
+
+    // TODO:
+    // Delete the refresh token record
+  }
+
+  const app = await prisma.oAuthApp.findUnique({
+    where: {
+      clientId,
+    },
+  });
+
+  if (!app) {
+    throw new Error("Invalid client id");
+  }
+
+  const clientSecretHashed = hashToken(clientSecret, {
+    noSecret: true,
+  });
+
+  if (app.clientSecretHashed !== clientSecretHashed) {
+    throw new Error("Invalid client secret");
+  }
+
+  const { accessToken, refreshToken: newRefreshToken } = createTokens();
+
+  await prisma.$transaction(async (tx) => {
+    // 1. Create a new access token
+    const accessTokenRecord = await tx.oAuthAccessToken.create({
+      data: {
+        clientId,
+        userId: refreshTokenRecord.accessToken.userId,
+        accessToken,
+        expiresAt: new Date(Date.now() + tokensExpiry.accessToken),
+      },
+    });
+
+    // 2. Create a new refresh token
+    await tx.oAuthRefreshToken.create({
+      data: {
+        refreshToken: newRefreshToken,
+        accessTokenId: accessTokenRecord.id,
+        expiresAt: new Date(Date.now() + tokensExpiry.refreshToken),
+      },
+    });
+
+    // 3. Delete the old refresh token
+    await tx.oAuthRefreshToken.delete({
+      where: {
+        refreshToken,
+      },
+    });
+  });
+
+  return {
+    token_type: "Bearer",
+    access_token: accessToken,
+    refresh_token: newRefreshToken,
     expires_in: tokensExpiry.accessToken,
   };
 };
