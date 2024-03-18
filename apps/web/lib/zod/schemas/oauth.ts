@@ -5,8 +5,6 @@ import z from "@/lib/zod";
 // 255: Check what is the exact limit in the database
 // Make the error messages more user-friendly
 
-// Move the /oauth-apps to separate route (outside of /projects)
-
 export const appIdSchema = z.object({
   appId: z.string(),
 });
@@ -18,3 +16,26 @@ export const createOAuthAppSchema = z.object({
 });
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();
+
+export const authRequestSchema = z.object({
+  client_id: z
+    .string({ required_error: "Missing client_id" })
+    .min(1, "Missing client_id"),
+  redirect_uri: z
+    .string({ required_error: "Missing redirect_uri" })
+    .url({ message: "redirect_uri must be a valid URL" }),
+  response_type: z
+    .string({
+      required_error: "Missing response_type",
+    })
+    .refine((responseType) => responseType === "code", {
+      message: "response_type must be 'code'",
+    }),
+  state: z.string().max(255).optional(),
+});
+
+export const authorizedRequestSchema = authRequestSchema.extend({
+  workspaceId: z
+    .string({ required_error: "Missing workspaceId" })
+    .min(1, "Missing workspaceId"),
+});
