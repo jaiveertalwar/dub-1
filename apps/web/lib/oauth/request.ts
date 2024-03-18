@@ -136,6 +136,9 @@ export const exchangeCodeForToken = async (formData: FormData) => {
 
   const { accessToken, refreshToken } = createTokens();
 
+  // TODO:
+  // Try https://www.prisma.io/docs/orm/prisma-client/queries/transactions#nested-writes-1
+
   await prisma.$transaction(async (tx) => {
     // 1. Create an access token
     const accessTokenRecord = await tx.oAuthAccessToken.create({
