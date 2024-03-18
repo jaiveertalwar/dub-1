@@ -39,3 +39,23 @@ export const authorizedRequestSchema = authRequestSchema.extend({
     .string({ required_error: "Missing workspaceId" })
     .min(1, "Missing workspaceId"),
 });
+
+export const tokenExchangeSchema = z.object({
+  code: z.string({ required_error: "Missing code" }).min(1, "Missing code"),
+  client_id: z
+    .string({ required_error: "Missing client_id" })
+    .min(1, "Missing client_id"),
+  client_secret: z
+    .string({ required_error: "Missing client_secret" })
+    .min(1, "Missing client_secret"),
+  redirect_uri: z
+    .string({ required_error: "Missing redirect_uri" })
+    .url({ message: "redirect_uri must be a valid URL" }),
+  grant_type: z
+    .string({
+      required_error: "Missing grant_type",
+    })
+    .refine((grantType) => grantType === "authorization_code", {
+      message: "grant_type must be 'authorization_code'",
+    }),
+});

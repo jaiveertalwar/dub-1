@@ -373,23 +373,22 @@ model OAuthCode {
 
 model OAuthAccessToken {
   id          String   @id @default(cuid())
-  appId       String
+  clientId    String
   userId      String
   accessToken String   @unique
   expiresAt   DateTime
   createdAt   DateTime @default(now())
 
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  app  OAuthApp @relation(fields: [appId], references: [id], onDelete: Cascade)
+  app  OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
 
   refreshToken OAuthRefreshToken[]
 
   // TODO:
-  // Can we have multiple access tokens for the same app and user?
   // Keep scopes of the token
 
-  @@unique([appId, userId])
-  @@index([appId])
+  @@unique([clientId, userId])
+  @@index([clientId])
   @@index([userId])
   @@index([accessToken])
 }

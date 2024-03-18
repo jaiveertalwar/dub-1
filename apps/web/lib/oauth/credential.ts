@@ -2,12 +2,24 @@ import { hashToken } from "@/lib/auth";
 import { nanoid } from "@dub/utils";
 import { DubApiError } from "../api/errors";
 
+const tokensLength = {
+  clientId: 24,
+  clientSecret: 48,
+  accessToken: 64,
+  refreshToken: 64,
+};
+
+export const tokensExpiry = {
+  accessToken: 1000 * 60 * 60 * 24, // 24 hours
+  refreshToken: 1000 * 60 * 60 * 24 * 30 * 6, // 6 months
+};
+
 export const createClientId = () => {
-  return `dub_app_${nanoid(24)}`;
+  return `dub_app_${nanoid(tokensLength.clientId)}`;
 };
 
 export const createClientSecret = () => {
-  const secret = `dub_app_secret_${nanoid(48)}`;
+  const secret = `dub_app_secret_${nanoid(tokensLength.clientSecret)}`;
 
   return {
     secret,
@@ -15,6 +27,13 @@ export const createClientSecret = () => {
     secretHashed: hashToken(secret, {
       noSecret: true,
     }),
+  };
+};
+
+export const createTokens = () => {
+  return {
+    accessToken: `dub_tkn_${nanoid(tokensLength.accessToken)}`,
+    refreshToken: `dub_refresh_${nanoid(tokensLength.refreshToken)}`,
   };
 };
 
