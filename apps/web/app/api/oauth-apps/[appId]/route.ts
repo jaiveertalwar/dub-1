@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withAuth } from "@/lib/auth";
-import { parseJSONBody } from "@/lib/oauth";
+import { parseJSONBody } from "@/lib/oauth/credential";
 import prisma from "@/lib/prisma";
 import { appIdSchema, updateOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";

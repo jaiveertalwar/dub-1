@@ -1,5 +1,9 @@
 import { withAuth } from "@/lib/auth";
-import { createClientId, createClientSecret, parseJSONBody } from "@/lib/oauth";
+import {
+  createClientId,
+  createClientSecret,
+  parseJSONBody,
+} from "@/lib/oauth/credential";
 import prisma from "@/lib/prisma";
 import { createOAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { NextResponse } from "next/server";

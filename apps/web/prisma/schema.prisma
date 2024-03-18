@@ -350,13 +350,14 @@ model OAuthApp {
 }
 
 model OAuthCode {
-  id        String   @id @default(cuid())
-  clientId  String
-  userId    String
-  projectId String // Project user granted access to
-  code      String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  clientId    String
+  userId      String
+  projectId   String // Project user granted access to
+  code        String   @unique
+  redirectUri String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   app     OAuthApp @relation(fields: [clientId], references: [clientId], onDelete: Cascade)

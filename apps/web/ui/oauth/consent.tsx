@@ -1,6 +1,6 @@
 "use client";
 
-import { authorizeRequest } from "@/lib/oauth";
+import { authorizeRequest } from "@/lib/oauth/request";
 import z from "@/lib/zod";
 import { authRequestSchema } from "@/lib/zod/schemas/oauth";
 import { Button, InputSelect, InputSelectItemProps } from "@dub/ui";
@@ -9,7 +9,7 @@ import type { OAuthApp, Project } from "@prisma/client";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 
-const initialState = {}
+const initialState = {};
 
 export function Consent({
   workspaces,
