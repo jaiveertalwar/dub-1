@@ -114,10 +114,10 @@ export const exchangeCodeForToken = async ({
     // TODO: Delete the code record
   }
 
-  // Client secret
   const app = await prisma.oAuthApp.findUnique({
     where: {
       clientId,
+      // Maybe add clientSecretHashed to the query. See the spec
     },
   });
 

@@ -1,3 +1,4 @@
+import { scopes } from "@/lib/oauth/scopes";
 import z from "@/lib/zod";
 
 // TODO:
@@ -25,6 +26,19 @@ export const createOAuthAppSchema = z.object({
         message: "Redirect uri must be an HTTPS/SSL URI (except for localhost)",
       },
     ),
+  scopes: z
+    .array(z.string())
+    .nonempty({
+      message: "You must provide at least one scope",
+    })
+    // .refine(
+    //   (s) => {
+    //     return s.every((scope) => scopes.includes(scope));
+    //   },
+    //   {
+    //     message: "Invalid scopes",
+    //   },
+    // ),
 });
 
 export const updateOAuthAppSchema = createOAuthAppSchema.partial();

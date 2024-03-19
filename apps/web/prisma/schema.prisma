@@ -325,6 +325,9 @@ model jackson_ttl {
 }
 
 model OAuthApp {
+  // TODO:
+  // Store who created the OAuth app
+
   id                 String   @id @default(cuid())
   projectId          String
   name               String
@@ -333,12 +336,9 @@ model OAuthApp {
   clientSecretHashed String
   clientSecretAlias  String
   redirectUris       Json
+  scopes             String // Space-separated scopes
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-
-  // TODO:
-  // Store who created the OAuth app
-  // Store scopes the app needs access to
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
