@@ -26,26 +26,9 @@ export async function generateStaticParams() {
     return [];
   }
 
-  const domains = await prisma.domain.findMany({
-    where: {
-      verified: true,
-      NOT: {
-        slug: "dub.sh",
-      },
-      links: {
-        some: {
-          url: "",
-        },
-      },
-    },
-    select: {
-      slug: true,
-    },
-  });
+  // Removed prisma.findMany logic
 
-  return domains.map(({ slug: domain }) => ({
-    domain,
-  }));
+  return [];
 }
 
 export default function CustomDomainPage() {
